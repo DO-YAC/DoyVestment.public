@@ -14,7 +14,7 @@ The platform spans multiple repositories covering every stage of the trading lif
 
 ## Architecture
 
-![Architecture Diagram](draw.io/Doyvestment.svg)
+![Architecture Diagram](draw.io/Doyvestment.jpg)
 
 ---
 
