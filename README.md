@@ -50,6 +50,9 @@ Every time a new tick comes in on MetaTrader 5, an Expert Advisor collects the c
 
 #### SignalMemoryReader
 
+The SignalMemoryReader is the other half of the Memory Bridge and handles the reverse direction. Once the SignalHandler has made a trade decision, it writes the result as JSON into a shared memory file with a marker byte set to 1. A Expert Advisor inside MetaTrader 5 polls this file every 5 milliseconds through the SignalMemoryReader DLL. The DLL reads the marker byte, and if new data is present, it converts it to JSON, returns it to the Expert Advisor, and flips the marker back to 0 so the same signal is never read twice. The Expert Advisor then parses the action and ticker from the JSON and executes the buy, sell, or close order on the broker.
+
+
 ### DoyAi -- Neural Network Training Pipeline
 
 A PyTorch-based pipeline that trains LSTM models on historical market data fetched directly from MongoDB, then exports trained models to ONNX format for real-time inference.
