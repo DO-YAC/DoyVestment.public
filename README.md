@@ -6,68 +6,43 @@
 
 ## About
 
-DoyVestment is a full-stack quantitative trading system built to ingest real-time market data, engineer features from technical indicators, generate trade signals through an ensemble of AI and rule-based strategies, and execute orders against a live broker -- all with sub-second latency.
+DoyVestment is a full-stack quantitative trading system built to ingest real-time market data and generate trade signals through an AI and rule-based strategies, and execute orders with a live broker - all with xx ms latency.
 
-The platform spans multiple repositories covering every stage of the trading lifecycle: data collection, feature engineering, model training, strategy optimization, signal generation, and order execution.
+The platform spans multiple repositories covering every stage of the trading lifecycle like data collection, model training, strategy optimization, signal generation, and order execution.
 
 ---
 
 ## Architecture
 
-```
-                          ┌──────────────────────────┐
-                          │    MetaTrader 5 Broker    │
-                          │   (Live Market Data Feed) │
-                          └────────────┬─────────────┘
-                                       │  Memory-Mapped IPC
-                          ┌────────────▼─────────────┐
-                          │   Signal Handler API      │
-                          │   (ASP.NET Core 9.0)      │
-                          │                           │
-                          │  ┌─────────────────────┐  │
-                          │  │ Feature Engineering  │  │
-                          │  │ 16 Technical         │  │
-                          │  │ Indicators           │  │
-                          │  └────────┬────────────┘  │
-                          │           │               │
-                          │  ┌────────▼────────────┐  │
-                          │  │ Strategy Engine      │  │
-                          │  │ (DoyLib)             │  │
-                          │  │  ├─ AI Module (ONNX) │  │
-                          │  │  └─ Rule-Based       │  │
-                          │  │    Modules           │  │
-                          │  └────────┬────────────┘  │
-                          │           │               │
-                          └───────────┼───────────────┘
-                               ┌──────┴──────┐
-                               ▼             ▼
-                          ┌─────────┐  ┌──────────┐
-                          │ MongoDB │  │  Redis   │
-                          │ (OHLCV) │  │ (Cache)  │
-                          └─────────┘  └──────────┘
-```
+DRAWIO DIAGRAMM
 
 ---
 
 ## Platform Components
 
-### Signal Handler API
-The core REST API that orchestrates the entire trading pipeline. Receives candle data via memory-mapped files, runs it through the feature engineering and strategy engine, and returns trade decisions.
+### SignalHandler
+
+The SignalHandler is the core engine that orchestrates the entire trading pipeline. It Receives candle data via memory-mapped files (MT5, SignalMemoryReader), runs it through the strategy engine (DoyLib), and returns a trade decision (BUY, SELL, HOLD).
 
 - ASP.NET Core 9.0 API with MongoDB persistence and Redis caching
 - Memory-mapped file protocol for zero-copy IPC with MetaTrader 5
 - Multi-symbol, multi-timeframe support (H1, D1, etc.)
 - Hot-swappable strategy modules at runtime
 
-### DoyLib -- Shared Trading Library
-A .NET Standard library consumed by all C# components, housing the core strategy engine, AI inference, and data models.
+### DoyLib - Multi-Strategy Trade Decision Engine
 
-- **Combined Strategy Engine** with modular, pluggable strategy modules and optional consensus-based decision making
-- **AI Strategy Module** powered by ONNX Runtime with GPU/CPU fallback, softmax confidence scoring, and margin-based decision validation
-- Runtime module registration for hot-swapping strategies without downtime
-- Thread-safe singleton model lifecycle management
+DoyLib is the shared core library that powers trade decisions across the entire platform. It takes in candle data enriched with technical features and runs it through a modular strategy engine where multiple decision modules - AI-based, rule-based, or both - each independently evaluate whether to buy, sell, or hold.
+
+The engine supports two voting modes: consensus, where all modules must agree before a trade is placed, and first-match, where the first clear signal wins. Modules that crash or return garbage are silently filtered out, so a single bad module never takes down the pipeline.
+                                                                                                                                                                             
+The AI module runs ONNX inference with GPU acceleration. It only acts when it's confident enough.
+
+New strategy modules can be registered without restructuring the whole System. Everything is configured through environment variables, so swapping between strategies, toggling the AI on or off, or adjusting confidence thresholds is a container restart away without code changes or redeployment.
+
+### Memory Bridge (C++ DLLs)
 
 ### DoyAi -- Neural Network Training Pipeline
+
 A PyTorch-based pipeline that trains LSTM models on historical market data fetched directly from MongoDB, then exports trained models to ONNX format for real-time inference.
 
 - LSTM sequence-to-prediction architecture with configurable depth and hidden dimensions
@@ -77,6 +52,7 @@ A PyTorch-based pipeline that trains LSTM models on historical market data fetch
 - Multi-GPU support via CUDA
 
 ### DoyStratOptimizer -- Genetic Algorithm Optimization
+
 A genetic algorithm suite that searches the parameter space of any trading strategy to find optimal configurations.
 
 - Multi-generational genetic algorithm with elitism (top-10 carry-over) and configurable mutation
@@ -86,6 +62,7 @@ A genetic algorithm suite that searches the parameter space of any trading strat
 - Console mode for headless batch optimization
 
 ### MT5 Simulator
+
 A cross-platform MAUI desktop app that simulates market tick generation, enabling full pipeline testing without a live broker connection.
 
 - Cross-platform (macOS + Windows) with .NET 10.0 and MAUI
@@ -94,6 +71,7 @@ A cross-platform MAUI desktop app that simulates market tick generation, enablin
 - Session-based state management with persistent configuration
 
 ### Memory Bridge (C++ DLLs)
+
 Two low-level C++ libraries handling the memory-mapped file protocol between MetaTrader 5 and the rest of the platform.
 
 - **SignalMemoryReader**: Reads trade signals from shared memory and forwards them via HTTP to the Signal Handler API
@@ -107,13 +85,13 @@ Two low-level C++ libraries handling the memory-mapped file protocol between Met
 
 The platform computes a 16-dimensional feature vector for each candle, including:
 
-| Category | Indicators |
-|---|---|
-| **Trend** | SMA, EMA, MACD |
-| **Momentum** | RSI |
-| **Volatility** | Bollinger Bands, ATR |
-| **Volume** | Volume analysis |
-| **Temporal** | Intraday cycle, day-of-week encoding |
+| Category       | Indicators                           |
+| -------------- | ------------------------------------ |
+| **Trend**      | SMA, EMA, MACD                       |
+| **Momentum**   | RSI                                  |
+| **Volatility** | Bollinger Bands, ATR                 |
+| **Volume**     | Volume analysis                      |
+| **Temporal**   | Intraday cycle, day-of-week encoding |
 
 These features feed both the AI module (as ONNX model inputs) and rule-based strategy modules.
 
@@ -121,22 +99,22 @@ These features feed both the AI module (as ONNX model inputs) and rule-based str
 
 ## Infrastructure
 
-| Component | Technology |
-|---|---|
-| Backend API | ASP.NET Core 9.0 (C#) |
-| ML Training | PyTorch (Python) |
-| ML Inference | ONNX Runtime 1.23.2 |
-| Data Storage | MongoDB |
-| Caching | Redis |
-| Broker Integration | MetaTrader 5 (MQL5) |
-| IPC | Memory-Mapped Files |
-| Containerization | Docker & Docker Compose |
-| Reverse Proxy | Traefik |
-| Authentication | Authelia |
-| Desktop UI | WPF / .NET MAUI |
-| Experiment Tracking | Weights & Biases |
-| Configuration | Hydra (Python), Environment Variables |
-| Indicators Library | Skender Stock Indicators |
+| Component           | Technology                            |
+| ------------------- | ------------------------------------- |
+| Backend API         | ASP.NET Core 9.0 (C#)                 |
+| ML Training         | PyTorch (Python)                      |
+| ML Inference        | ONNX Runtime 1.23.2                   |
+| Data Storage        | MongoDB                               |
+| Caching             | Redis                                 |
+| Broker Integration  | MetaTrader 5 (MQL5)                   |
+| IPC                 | Memory-Mapped Files                   |
+| Containerization    | Docker & Docker Compose               |
+| Reverse Proxy       | Traefik                               |
+| Authentication      | Authelia                              |
+| Desktop UI          | WPF / .NET MAUI                       |
+| Experiment Tracking | Weights & Biases                      |
+| Configuration       | Hydra (Python), Environment Variables |
+| Indicators Library  | Skender Stock Indicators              |
 
 ---
 
@@ -152,6 +130,8 @@ These features feed both the AI module (as ONNX model inputs) and rule-based str
 ---
 
 ## Technology Stack
+
+Later Automated with GH WORKFLOW
 
 **Languages**: C#, Python, C++, MQL5
 **Frameworks**: ASP.NET Core, PyTorch, .NET MAUI, WPF
