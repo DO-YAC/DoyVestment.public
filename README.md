@@ -39,7 +39,16 @@ The AI module runs ONNX inference with GPU acceleration. It only acts when it's 
 
 New strategy modules can be registered without restructuring the whole System. Everything is configured through environment variables, so swapping between strategies, toggling the AI on or off, or adjusting confidence thresholds is a container restart away without code changes or redeployment.
 
+## MetaTrader 5 instance
+
 ### Memory Bridge (C++ DLLs)
+
+#### ChartMemoryPrinter
+
+Every time a new tick comes in on MetaTrader 5, an Expert Advisor collects the current candle's OHLCV data, formats it as JSON, and passes it to the ChartMemoryPrinter DLL. The DLL is a small C++ library with a single exported function that writes the JSON into a shared memory file using an atomic write pattern. The Data goes to a temporary file first, then gets swapped into place with a single rename operation. This means the SignalHandler on the other side never reads a half-written candle. The whole path from tick to readable shared memory takes microseconds.
+
+
+#### SignalMemoryReader
 
 ### DoyAi -- Neural Network Training Pipeline
 
