@@ -45,6 +45,8 @@ The MetaTrader 5 instance runs fully containerized with Docker. The container is
 
 ### Memory Bridge (C++ DLLs)
 
+Two C++ libraries are handling the memory-mapped file protocol for MetaTrader 5.
+
 #### ChartMemoryPrinter
 
 Every time a new tick comes in on MetaTrader 5, an Expert Advisor collects the current candle's OHLCV data, formats it as JSON, and passes it to the ChartMemoryPrinter DLL. The DLL is a small C++ library with a single exported function that writes the JSON into a shared memory file using an atomic write pattern. The Data goes to a temporary file first, then gets swapped into place with a single rename operation. This means the SignalHandler on the other side never reads a half-written candle. The whole path from tick to readable shared memory takes microseconds.
@@ -81,15 +83,6 @@ A cross-platform MAUI desktop app that simulates market tick generation, enablin
 - Configurable tick generation rate and simulation parameters
 - Outputs to shared memory-mapped files, identical to the live pipeline
 - Session-based state management with persistent configuration
-
-### Memory Bridge (C++ DLLs)
-
-Two low-level C++ libraries handling the memory-mapped file protocol between MetaTrader 5 and the rest of the platform.
-
-- **SignalMemoryReader**: Reads trade signals from shared memory and forwards them via HTTP to the Signal Handler API
-- **ChartMemoryPrinter**: Serializes chart/candle data from MT5 into shared memory with atomic write operations
-- UTF-16/UTF-8 encoding conversion for cross-platform compatibility
-- Built-in logging and error tracking
 
 ---
 
