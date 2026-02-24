@@ -52,12 +52,12 @@ jobs:
                 stats = json.load(f)
 
             def bar(pct):
-                return f"![{pct}%](https://progress-bar.xyz/{int(pct)}/?width=200)"
+              return f"![{pct}%](https://progress-bar.xyz/{int(pct)}/?width=200&color=58A6FF)"
 
             rows = []
             for i, s in enumerate(stats, 1):
                 rows.append(
-                    f"| {i} | {s['language']} | {s['bytes']:,} | {bar(s['percentage'])} {s['percentage']}% |"
+                    f"| {i} | {s['language']} | {s['bytes']:,} | {bar(s['percentage'])} |"
                 )
 
             table = (
