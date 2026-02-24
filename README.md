@@ -62,4 +62,13 @@ The SignalMemoryReader is the other half of the Memory Bridge and handles the re
 
 ## Technology Stack --> TODO
 
-Later Automated with GH WORKFLOW
+| Language | Percentage |
+|----------|------------|
+| C# | 55.6% |
+| Python | 16.3% |
+| MQL5 | 14.9% |
+| HTML | 6.1% |
+| C++ | 2.7% |
+| Shell | 2.2% |
+| Dockerfile | 1.1% |
+| C | 1% |
