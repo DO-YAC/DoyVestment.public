@@ -62,13 +62,15 @@ The SignalMemoryReader is the other half of the Memory Bridge and handles the re
 
 ## Technology Stack --> TODO
 
-| Language | Percentage |
-|----------|------------|
-| C# | 55.6% |
-| Python | 16.3% |
-| MQL5 | 14.9% |
-| HTML | 6.1% |
-| C++ | 2.7% |
-| Shell | 2.2% |
-| Dockerfile | 1.1% |
-| C | 1% |
+| # | Language | Bytes | Share |
+|--:|----------|------:|:------|
+| 1 | C# | 144,196 | ███████████░░░░░░░░░ 55.6% |
+| 2 | Python | 42,258 | ███░░░░░░░░░░░░░░░░░ 16.3% |
+| 3 | MQL5 | 38,643 | ███░░░░░░░░░░░░░░░░░ 14.9% |
+| 4 | HTML | 15,782 | █░░░░░░░░░░░░░░░░░░░ 6.1% |
+| 5 | C++ | 7,016 | █░░░░░░░░░░░░░░░░░░░ 2.7% |
+| 6 | Shell | 5,810 | ░░░░░░░░░░░░░░░░░░░░ 2.2% |
+| 7 | Dockerfile | 2,969 | ░░░░░░░░░░░░░░░░░░░░ 1.1% |
+| 8 | C | 2,612 | ░░░░░░░░░░░░░░░░░░░░ 1% |
+
+_Generated automatically by [`.github/workflows/build-org-statistics.yml`](.github/workflows/build-org-statistics.yml) · Last updated: _
