@@ -51,9 +51,8 @@ jobs:
             with open('stats.json') as f:
                 stats = json.load(f)
 
-            def bar(pct, width=50):
-                filled = round(pct / 100 * width)
-                return '█' * filled + '─' * (width - filled)
+            def bar(pct):
+                return f"![{pct}%](https://progress-bar.xyz/{int(pct)}/?width=200)"
 
             rows = []
             for i, s in enumerate(stats, 1):
