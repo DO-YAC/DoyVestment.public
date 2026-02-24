@@ -22,6 +22,7 @@ jobs:
           ORG: ${{ github.repository_owner }}
         with:
           max_attempts: 3
+          timeout_seconds: 30
           command: |
             gh repo list $ORG --limit 1000 --json name --jq '.[].name' | while read repo; do
               gh api repos/$ORG/$repo/languages 2>/dev/null || echo '{}'
