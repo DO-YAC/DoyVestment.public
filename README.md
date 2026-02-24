@@ -6,7 +6,7 @@
 
 ## About
 
-DoyVestment is a full-stack quantitative trading system built to ingest real-time market data and generate trade signals through an AI and rule-based strategies, and execute orders with a live broker - all with xx ms latency.
+DoyVestment is a full-stack quantitative trading system built to ingest real-time market data and generate trade signals through an AI and rule-based strategies, and execute orders with a live broker.
 
 The platform spans multiple repositories covering every stage of the trading lifecycle like data collection, model training, strategy optimization, signal generation, and order execution.
 

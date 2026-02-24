@@ -1,0 +1,42 @@
+name: Build Organization Language Statistics
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 9 * * 1'
+
+jobs:
+  language-stats:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Fetch Language Stats
+        env:
+          GH_TOKEN: ${{ secrets.ORG_STATS_PAT }}
+          ORG: ${{ github.repository_owner }}
+        run: |
+          echo "## Language Stats for $ORG" >> $GITHUB_STEP_SUMMARY
+
+          gh repo list $ORG --limit 1000 --json name --jq '.[].name' | while read repo; do
+            gh api repos/$ORG/$repo/languages
+            sleep 0.1
+          done | jq -s '
+            reduce .[] as $lang (
+              {};
+              reduce ($lang | to_entries[]) as $entry (
+                .;
+                .[$entry.key] += $entry.value
+              )
+            )
+            | to_entries
+            | sort_by(-.value)
+            | (map(.value) | add) as $total
+            | map({language: .key, percentage: (.value / $total * 100 | (. * 10 | round) / 10)})
+          ' > stats.json
+
+          # Print as markdown table to Job Summary
+          echo "| Language | Percentage |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|------------|" >> $GITHUB_STEP_SUMMARY
+          jq -r '.[] | "| \(.language) | \(.percentage)% |"' stats.json >> $GITHUB_STEP_SUMMARY
