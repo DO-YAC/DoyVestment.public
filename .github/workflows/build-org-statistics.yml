@@ -38,13 +38,13 @@ jobs:
           ' > stats.json
 
       - name: Update README
-        env:
-          UPDATED_AT: ${{ github.run_started_at }}
         run: |
+          UPDATED_AT=$(date -u +"%Y-%m-%d")
+          export UPDATED_AT
           python3 - <<'EOF'
           import json, os
 
-          updated_at = os.environ['UPDATED_AT'][:10]
+          updated_at = os.environ['UPDATED_AT']
 
           with open('stats.json') as f:
               stats = json.load(f)
