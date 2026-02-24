@@ -13,95 +13,94 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Fetch Language Stats
+      - name: Build and Update Stats
+        uses: nick-fields/retry@v3
         env:
           GH_TOKEN: ${{ secrets.ORG_STATS_PAT }}
           ORG: ${{ github.repository_owner }}
-        run: |
-          gh repo list $ORG --limit 1000 --json name --jq '.[].name' | while read repo; do
-            gh api repos/$ORG/$repo/languages
-            sleep 0.1
-          done | jq -s '
-            reduce .[] as $lang (
-              {};
-              reduce ($lang | to_entries[]) as $entry (
-                .;
-                .[$entry.key] += $entry.value
+        with:
+          max_attempts: 3
+          command: |
+            gh repo list $ORG --limit 1000 --json name --jq '.[].name' | while read repo; do
+              gh api repos/$ORG/$repo/languages 2>/dev/null || echo '{}'
+              sleep 0.1
+            done | jq -s '
+              reduce .[] as $lang (
+                {};
+                reduce ($lang | to_entries[]) as $entry (
+                  .;
+                  .[$entry.key] += $entry.value
+                )
               )
+              | to_entries
+              | sort_by(-.value)
+              | (map(.value) | add) as $total
+              | map({language: .key, bytes: .value, percentage: (.value / $total * 100 | (. * 10 | round) / 10)})
+            ' > stats.json
+
+            UPDATED_AT=$(date -u +"%Y-%m-%d")
+            export UPDATED_AT
+            python3 - <<'PYEOF'
+            import json, os
+
+            updated_at = os.environ['UPDATED_AT']
+
+            with open('stats.json') as f:
+                stats = json.load(f)
+
+            def bar(pct, width=20):
+                filled = round(pct / 100 * width)
+                return '█' * filled + '─' * (width - filled)
+
+            rows = []
+            for i, s in enumerate(stats, 1):
+                rows.append(
+                    f"| {i} | {s['language']} | {s['bytes']:,} | {bar(s['percentage'])} {s['percentage']}% |"
+                )
+
+            table = (
+                "| # | Language | Bytes | Share |\n"
+                "|--:|----------|------:|:------|\n"
+                + "\n".join(rows)
             )
-            | to_entries
-            | sort_by(-.value)
-            | (map(.value) | add) as $total
-            | map({language: .key, bytes: .value, percentage: (.value / $total * 100 | (. * 10 | round) / 10)})
-          ' > stats.json
 
-      - name: Update README
-        run: |
-          UPDATED_AT=$(date -u +"%Y-%m-%d")
-          export UPDATED_AT
-          python3 - <<'EOF'
-          import json, os
+            note = (
+                f"\n\n_Generated automatically by "
+                f"[`.github/workflows/build-org-statistics.yml`](.github/workflows/build-org-statistics.yml)"
+                f" · Last updated: {updated_at}_"
+            )
 
-          updated_at = os.environ['UPDATED_AT']
+            with open('README.md') as f:
+                content = f.read()
 
-          with open('stats.json') as f:
-              stats = json.load(f)
+            section_header = "## Technology Stack --> TODO"
+            idx = content.find(section_header)
+            if idx == -1:
+                print("Section not found in README.md")
+                exit(1)
 
-          def bar(pct, width=20):
-              filled = round(pct / 100 * width)
-              return '█' * filled + '░' * (width - filled)
+            end_of_header = content.find('\n', idx) + 1
+            rest = content[end_of_header:]
 
-          rows = []
-          for i, s in enumerate(stats, 1):
-              rows.append(
-                  f"| {i} | {s['language']} | {s['bytes']:,} | {bar(s['percentage'])} {s['percentage']}% |"
-              )
+            next_section = -1
+            for pattern in ['\n## ', '\n---']:
+                pos = rest.find(pattern)
+                if pos != -1 and (next_section == -1 or pos < next_section):
+                    next_section = pos
 
-          table = (
-              "| # | Language | Bytes | Share |\n"
-              "|--:|----------|------:|:------|\n"
-              + "\n".join(rows)
-          )
+            after_section = rest[next_section:] if next_section != -1 else ""
+            new_content = content[:end_of_header] + "\n" + table + note + "\n" + after_section
 
-          note = (
-              f"\n\n_Generated automatically by "
-              f"[`.github/workflows/build-org-statistics.yml`](.github/workflows/build-org-statistics.yml)"
-              f" · Last updated: {updated_at}_"
-          )
+            with open('README.md', 'w') as f:
+                f.write(new_content)
 
-          with open('README.md') as f:
-              content = f.read()
+            print("README.md updated successfully")
+            PYEOF
 
-          section_header = "## Technology Stack --> TODO"
-          idx = content.find(section_header)
-          if idx == -1:
-              print("Section not found in README.md")
-              exit(1)
-
-          end_of_header = content.find('\n', idx) + 1
-          rest = content[end_of_header:]
-
-          next_section = -1
-          for pattern in ['\n## ', '\n---']:
-              pos = rest.find(pattern)
-              if pos != -1 and (next_section == -1 or pos < next_section):
-                  next_section = pos
-
-          after_section = rest[next_section:] if next_section != -1 else ""
-          new_content = content[:end_of_header] + "\n" + table + note + "\n" + after_section
-
-          with open('README.md', 'w') as f:
-              f.write(new_content)
-
-          print("README.md updated successfully")
-          EOF
-
-      - name: Commit and Push
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md
-          git diff --staged --quiet || git commit -m "Update technology stack statistics"
-          git push
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git diff --staged --quiet || git commit -m "Update technology stack statistics"
+            git push
