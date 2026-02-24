@@ -9,16 +9,17 @@ jobs:
   language-stats:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Fetch Language Stats
         env:
           GH_TOKEN: ${{ secrets.ORG_STATS_PAT }}
           ORG: ${{ github.repository_owner }}
         run: |
-          echo "## Language Stats for $ORG" >> $GITHUB_STEP_SUMMARY
-
           gh repo list $ORG --limit 1000 --json name --jq '.[].name' | while read repo; do
             gh api repos/$ORG/$repo/languages
             sleep 0.1
@@ -36,7 +37,48 @@ jobs:
             | map({language: .key, percentage: (.value / $total * 100 | (. * 10 | round) / 10)})
           ' > stats.json
 
-          # Print as markdown table to Job Summary
-          echo "| Language | Percentage |" >> $GITHUB_STEP_SUMMARY
-          echo "|----------|------------|" >> $GITHUB_STEP_SUMMARY
-          jq -r '.[] | "| \(.language) | \(.percentage)% |"' stats.json >> $GITHUB_STEP_SUMMARY
+      - name: Update README
+        run: |
+          python3 - <<'EOF'
+          import json
+
+          with open('stats.json') as f:
+              stats = json.load(f)
+
+          table = "| Language | Percentage |\n|----------|------------|\n"
+          table += "\n".join(f"| {s['language']} | {s['percentage']}% |" for s in stats)
+
+          with open('README.md') as f:
+              content = f.read()
+
+          section_header = "## Technology Stack --> TODO"
+          idx = content.find(section_header)
+          if idx == -1:
+              print("Section not found in README.md")
+              exit(1)
+
+          end_of_header = content.find('\n', idx) + 1
+          rest = content[end_of_header:]
+
+          next_section = -1
+          for pattern in ['\n## ', '\n---']:
+              pos = rest.find(pattern)
+              if pos != -1 and (next_section == -1 or pos < next_section):
+                  next_section = pos
+
+          after_section = rest[next_section:] if next_section != -1 else ""
+          new_content = content[:end_of_header] + "\n" + table + "\n" + after_section
+
+          with open('README.md', 'w') as f:
+              f.write(new_content)
+
+          print("README.md updated successfully")
+          EOF
+
+      - name: Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff --staged --quiet || git commit -m "Update technology stack statistics"
+          git push
