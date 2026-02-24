@@ -105,3 +105,7 @@ jobs:
             git add README.md
             git diff --staged --quiet || git commit -m "Update technology stack statistics"
             git push
+          
+        
+      - name: Debug stats.json
+        run: cat stats.json
