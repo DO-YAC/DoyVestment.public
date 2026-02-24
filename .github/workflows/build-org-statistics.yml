@@ -34,19 +34,42 @@ jobs:
             | to_entries
             | sort_by(-.value)
             | (map(.value) | add) as $total
-            | map({language: .key, percentage: (.value / $total * 100 | (. * 10 | round) / 10)})
+            | map({language: .key, bytes: .value, percentage: (.value / $total * 100 | (. * 10 | round) / 10)})
           ' > stats.json
 
       - name: Update README
+        env:
+          UPDATED_AT: ${{ github.run_started_at }}
         run: |
           python3 - <<'EOF'
-          import json
+          import json, os
+
+          updated_at = os.environ['UPDATED_AT'][:10]
 
           with open('stats.json') as f:
               stats = json.load(f)
 
-          table = "| Language | Percentage |\n|----------|------------|\n"
-          table += "\n".join(f"| {s['language']} | {s['percentage']}% |" for s in stats)
+          def bar(pct, width=20):
+              filled = round(pct / 100 * width)
+              return '█' * filled + '░' * (width - filled)
+
+          rows = []
+          for i, s in enumerate(stats, 1):
+              rows.append(
+                  f"| {i} | {s['language']} | {s['bytes']:,} | {bar(s['percentage'])} {s['percentage']}% |"
+              )
+
+          table = (
+              "| # | Language | Bytes | Share |\n"
+              "|--:|----------|------:|:------|\n"
+              + "\n".join(rows)
+          )
+
+          note = (
+              f"\n\n_Generated automatically by "
+              f"[`.github/workflows/build-org-statistics.yml`](.github/workflows/build-org-statistics.yml)"
+              f" · Last updated: {updated_at}_"
+          )
 
           with open('README.md') as f:
               content = f.read()
@@ -67,7 +90,7 @@ jobs:
                   next_section = pos
 
           after_section = rest[next_section:] if next_section != -1 else ""
-          new_content = content[:end_of_header] + "\n" + table + "\n" + after_section
+          new_content = content[:end_of_header] + "\n" + table + note + "\n" + after_section
 
           with open('README.md', 'w') as f:
               f.write(new_content)
