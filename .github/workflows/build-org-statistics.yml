@@ -51,7 +51,7 @@ jobs:
             with open('stats.json') as f:
                 stats = json.load(f)
 
-            def bar(pct, width=20):
+            def bar(pct, width=100):
                 filled = round(pct / 100 * width)
                 return '█' * filled + '─' * (width - filled)
 
