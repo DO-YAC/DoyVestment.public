@@ -75,7 +75,7 @@ jobs:
             with open('README.md') as f:
                 content = f.read()
 
-            section_header = "## Technology Stack --> TODO"
+            section_header = "## Technology Stack"
             idx = content.find(section_header)
             if idx == -1:
                 print("Section not found in README.md")

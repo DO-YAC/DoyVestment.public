@@ -60,7 +60,7 @@ The SignalMemoryReader is the other half of the Memory Bridge and handles the re
 
 ---
 
-## Technology Stack --> TODO
+## Technology Stack
 
 | # | Language | Bytes | Share |
 |--:|----------|------:|:------|
