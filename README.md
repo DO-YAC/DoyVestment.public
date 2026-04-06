@@ -67,7 +67,7 @@ It evaluates large strategy populations across multiple performance metrics and 
 
 | # | Language | Bytes | Share |
 |--:|----------|------:|:------|
-| 1 | C# | 227,884 | ![64.8%](https://progress-bar.xyz/64/?width=200&progress_color=58A6FF) |
+| 1 | C# | 228,652 | ![64.9%](https://progress-bar.xyz/64/?width=200&progress_color=58A6FF) |
 | 2 | Python | 50,928 | ![14.5%](https://progress-bar.xyz/14/?width=200&progress_color=58A6FF) |
 | 3 | MQL5 | 38,809 | ![11%](https://progress-bar.xyz/11/?width=200&progress_color=58A6FF) |
 | 4 | HTML | 15,782 | ![4.5%](https://progress-bar.xyz/4/?width=200&progress_color=58A6FF) |
@@ -76,4 +76,4 @@ It evaluates large strategy populations across multiple performance metrics and 
 | 7 | C | 2,612 | ![0.7%](https://progress-bar.xyz/0/?width=200&progress_color=58A6FF) |
 | 8 | Dockerfile | 2,527 | ![0.7%](https://progress-bar.xyz/0/?width=200&progress_color=58A6FF) |
 
-_Generated automatically by [`.github/workflows/build-org-statistics.yml`](.github/workflows/build-org-statistics.yml) · Last updated: 2026-03-30_
+_Generated automatically by [`.github/workflows/build-org-statistics.yml`](.github/workflows/build-org-statistics.yml) · Last updated: 2026-04-06_
