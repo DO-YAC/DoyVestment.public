@@ -67,12 +67,12 @@ It evaluates large strategy populations across multiple performance metrics and 
 
 | # | Language | Bytes | Share |
 |--:|----------|------:|:------|
-| 1 | C# | 360,690 | ![73.7%](https://progress-bar.xyz/73/?width=200&progress_color=58A6FF) |
+| 1 | C# | 361,144 | ![73.7%](https://progress-bar.xyz/73/?width=200&progress_color=58A6FF) |
 | 2 | MQL5 | 59,717 | ![12.2%](https://progress-bar.xyz/12/?width=200&progress_color=58A6FF) |
-| 3 | Python | 52,618 | ![10.8%](https://progress-bar.xyz/10/?width=200&progress_color=58A6FF) |
+| 3 | Python | 52,618 | ![10.7%](https://progress-bar.xyz/10/?width=200&progress_color=58A6FF) |
 | 4 | Shell | 6,178 | ![1.3%](https://progress-bar.xyz/1/?width=200&progress_color=58A6FF) |
-| 5 | C++ | 5,346 | ![1.1%](https://progress-bar.xyz/1/?width=200&progress_color=58A6FF) |
+| 5 | C++ | 5,428 | ![1.1%](https://progress-bar.xyz/1/?width=200&progress_color=58A6FF) |
 | 6 | Dockerfile | 2,502 | ![0.5%](https://progress-bar.xyz/0/?width=200&progress_color=58A6FF) |
 | 7 | C | 2,360 | ![0.5%](https://progress-bar.xyz/0/?width=200&progress_color=58A6FF) |
 
-_Generated automatically by [`.github/workflows/build-org-statistics.yml`](.github/workflows/build-org-statistics.yml) · Last updated: 2026-07-06_
+_Generated automatically by [`.github/workflows/build-org-statistics.yml`](.github/workflows/build-org-statistics.yml) · Last updated: 2026-07-13_
